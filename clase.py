@@ -10,7 +10,8 @@ class Lectura:
 
 
 class Sensor(ABC):
-    def __init__(self, variable, unidad, linea_base, limite_min=None, limite_max=None, punto="cercano"):
+    def __init__(self, variable, unidad, linea_base,
+                 limite_min=None, limite_max=None, punto="cercano"):
         self.variable = variable
         self.unidad = unidad
         self.linea_base = linea_base
@@ -20,7 +21,6 @@ class Sensor(ABC):
         self.lecturas = []
 
     def simular_lectura(self, factor):
-        """factor: 0 = selva virgen, 1 = mina activa"""
         if self.limite_max:
             media = self.linea_base + (self.limite_max - self.linea_base) * factor
         elif self.limite_min:
@@ -36,3 +36,64 @@ class Sensor(ABC):
     @abstractmethod
     def evaluar(self, lectura):
         pass
+
+
+class SensorAgua(Sensor):
+    def evaluar(self, lectura):
+        if self.limite_max and lectura.valor > self.limite_max:
+            return f"ALERTA: {self.variable} = {lectura.valor} {self.unidad}"
+        if self.limite_min and lectura.valor < self.limite_min:
+            return f"ALERTA: {self.variable} = {lectura.valor} {self.unidad}"
+        return None
+
+
+class SensorAire(Sensor):
+    def evaluar(self, lectura):
+        if lectura.valor > self.limite_max:
+            return f"ALERTA: {self.variable} = {lectura.valor} {self.unidad}"
+        return None
+
+
+class SensorSuelo(Sensor):
+    def evaluar(self, lectura):
+        if self.limite_min and lectura.valor < self.limite_min:
+            return f"ALERTA: {self.variable} = {lectura.valor} {self.unidad}"
+        if self.limite_max and lectura.valor > self.limite_max:
+            return f"ALERTA: {self.variable} = {lectura.valor} {self.unidad}"
+        return None
+
+
+class SensorRuido(Sensor):
+    def evaluar(self, lectura):
+        if lectura.valor > self.limite_max:
+            return f"ALERTA: {self.variable} = {lectura.valor} {self.unidad}"
+        return None
+
+
+class SensorClima(Sensor):
+    def evaluar(self, lectura):
+        if self.limite_max and lectura.valor > self.limite_max:
+            return f"ALERTA: {self.variable} = {lectura.valor} {self.unidad}"
+        if self.limite_min and lectura.valor < self.limite_min:
+            return f"ALERTA: {self.variable} = {lectura.valor} {self.unidad}"
+        return None
+
+
+class PuntoMonitoreo:
+    def __init__(self, nombre, tipo):
+        self.nombre = nombre
+        self.tipo = tipo
+        self.sensores = []
+
+    def agregar_sensor(self, sensor):
+        sensor.punto = self.tipo
+        self.sensores.append(sensor)
+
+
+class Mina:
+    def __init__(self, nombre):
+        self.nombre = nombre
+        self.puntos = []
+
+    def agregar_punto(self, punto):
+        self.puntos.append(punto)
